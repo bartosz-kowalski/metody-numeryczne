@@ -1,22 +1,14 @@
-#include <math.h>
-#include <stdlib.h>
-#include <algorithm>
-#include <vector>
-#include <iostream>
+#include "simpleks.hpp"
 
-#pragma once
-
-#define ALPHA 1
-#define BETA 0.5
-#define GAMMA 2
-#define DELTA 0.5
-#define EPSILON 0.00001
+#define ALPHA 1.1
+#define BETA 0.4
+#define GAMMA 2.05
+#define DELTA 0.3
+#define EPSILON 0.0000001
 #define MAX_I 1000
 
-typedef double (* funkcja)(double*);
 
-class simplex
-{
+class simplex{
     private:
         const int dim; //number of dimensions
         const int dim_sim;
@@ -202,13 +194,12 @@ void printSimp(simplex* simp, funkcja func)
 
 double* min_search(const int no_dim, double* start_pt, funkcja function)
 {
-    //int no_dim = sizeof(*start_pt)/sizeof(double);
     simplex starting_point(no_dim);
     int simplex_point_no = starting_point.getDimS();
     int dimension_no = starting_point.getDim();
    
     starting_point.init(start_pt);
-    printSimp(&starting_point, function);
+    //printSimp(&starting_point, function);
     double** current_simplex = starting_point.getSimp();
 
     //inicjalizacja wektora funkcji
@@ -218,12 +209,6 @@ double* min_search(const int no_dim, double* start_pt, funkcja function)
         f_values[i]=function(current_simplex[i]);
     }
 
-    //debugging
-    /*for(int i = 0; i < simplex_point_no; ++i){printf("%6.4f ", f_values[i]);}
-    double std = calculate_std(f_values, simplex_point_no);
-    printf("%6.4f ", std);
-    printf("%6.4f \n", calculate_mean(f_values, simplex_point_no));*/
-
     //zmienne pomocnicze
     double* x_o = new double [dimension_no];
     double* x_r = new double [dimension_no];
@@ -231,23 +216,18 @@ double* min_search(const int no_dim, double* start_pt, funkcja function)
     double* x_e = new double [dimension_no];
     double f_r, f_c, f_e;
 
-    // x_worst = simplex[simplex_point_no-1]
-    // x_best = simplex[0]
-
     //glowna pętla
     for(int i = 0; i < MAX_I; ++i)
     {
         //warunek wyjscia (nie dziala)
         if(calculate_std(f_values, simplex_point_no) < EPSILON) 
         {
-            printf("%s", "osiagnieto pozadane odchylenie standradowe \n");
+            //printf("%s", "osiagnieto pozadane odchylenie standradowe \n");
             break;
         }
 
-        //kandydat na mąciciela 1 -- sprawdzony
         idx_sort(f_values, starting_point);
 
-        //kandydat na mąciciela 2 -- sprawdzony
         x_o = calculate_mean_2d(current_simplex, dimension_no);
 
         for(int j = 0; j < dimension_no; ++j)
@@ -318,11 +298,6 @@ double* min_search(const int no_dim, double* start_pt, funkcja function)
     delete[] x_c;
     delete[] x_e;
     delete[] f_values;
-    double* zwrot = new double[dimension_no];
-    for(int j = 0; j < dimension_no; ++j)
-    {
-        zwrot[j] = current_simplex[0][j];
-    }
-    printSimp(&starting_point, function);
-    return zwrot;
+    //printSimp(&starting_point, function);
+    return current_simplex[0];
 }
